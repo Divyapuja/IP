@@ -1,0 +1,129 @@
+#!/usr/bin/python
+# This is the client application of client-server application.
+# Author - Divyapuja Vitonde
+import socket
+import sys
+import time
+import struct
+from struct import *
+from netifaces import *
+import pickle
+import hashlib
+#import netifaces as ni
+import pdb
+
+#This method reads data from the file in byte format. The client also implements the
+#sending side of the reliable Go-back-N protocol, receiving data from rdt_send(), buffering the data locally, and
+#ensuring that the data is received correctly at the server.
+#def rdt_send(data):
+    
+def readData():
+    
+        #collectData = '%ds %dx %ds' % (2,4,len(data))
+        #new = b''.join(struct.unpack(collectData, data))
+        #while 1:
+            #data = data.get(20)
+            #collectData = '%ds %dx %ds' % (data, 2, 4)
+            #collectData = data
+            #if not data:
+                #break
+     # Collect window size N value as integers. Exception handling to ensure only positive integer values of N are passed
+    try:
+      
+      serverHostName = sys.argv[1]
+      # Read file from command prompt
+      with open(sys.argv[3], 'rb+') as f:
+          totalData = f.read()
+      serverPort = int(sys.argv[2])
+      localN = int(sys.argv[4])
+      localMSS = int(sys.argv[5])
+      if serverPort<=0 or localN<=0  or  localMSS<=0:
+          raise ValueError
+    except ValueError:
+        print("Server port, Window size N  and MSS should have non zero positive integer values")
+        # initialize variables
+        # ACK received from server.
+        #ACK = 0 
+        #numberOfPacketsSent = 0
+        #numberOfPacketsAcked = 0
+        #sequenceNumber = 0
+    print(serverHostName,serverPort,totalData,localN,localMSS)
+    return serverHostName,serverPort,totalData,localN,localMSS
+'''
+def keepInBuffer(data):
+    bufferSize = 1024
+    limitedData = data.read(bufferSize)'''
+#def manipulateData(totalData):
+#	MSS = 5
+#	data = totalData[0:MSS]
+#	print(data)
+	#for element in data:
+	#	print(element)#collectData = totalData
+
+	#print(data)	
+#def constructPacket():
+    #packet = header + data
+    #sequenceNumber = 0
+    #{} places a variable into a string 0 takes the variable at argument position 0: adds formatting options for this variable (otherwise it would represent #decimal 6) 08 formats the number to eight digits zero-padded on the left b converts the number to its binary representation
+    #FormattedSeq = '{0:032b}'.format(sequenceNumber)
+    #ReadyPacket = header + data
+	
+
+def main():
+    global N
+    #MSS = 5
+    global starttime
+    sequenceNumber = 0
+    #bufferSize = 1
+    starttime = time.time()
+    print("\nStart time :::: ", starttime)
+    # checksum evaluaion
+    #encrypt = hashlib.md5()
+    # call readData() function
+    serverHostName,serverPort,totalData,N,MSS = readData()
+    #limitedData = data.read(bufferSize)
+    data = totalData[0:MSS]
+    NewData = ' '.join(format(x, 'b') for x in bytearray(data))
+    #checkSum = hashlib.new(str(data))
+    #value = hash.block_size
+    ary = []
+    pdb.set_trace()
+    ary.append(str.encode(NewData))
+    h = hashlib.md5()
+    h.update(pickle.dumps(ary))
+    ary.append(h.digest())
+    print(ary)
+    hx = ary.hexdigest()
+    #print(limitedData)
+    print("The information read is ....")
+    print("\nserverHostName = ",serverHostName,"\nserverPort = ",serverPort,"\ndata = ",totalData,"\nN = ",N,"\nMSS = ",MSS)
+    #manipulateData(totalData)
+    # Create a socket object
+    FormattedSeq = '{0:032b}'.format(sequenceNumber)
+    header = FormattedSeq + str('{0:016b}'.format(0)) + str('{0:016b}'.format(1010101010101010))
+    print(type(header))
+
+    #print(data)
+    #converting string into byte 
+    ReadyPacket = str.encode(header + str(data))
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  
+    s.connect((serverHostName,serverPort))
+    s.sendto(ReadyPacket,(serverHostName,serverPort))
+    while 1:
+        packet,serverAddress = s.recvfrom(1024)
+        receivedPacket = []
+        receivedPacket = packet
+        print(receivedPacket)
+        #.recvfrom(4096)
+    '''
+	clientSocket = socket(socket.AF_INET, socket.SOCK_DGRAM)
+if you were intending to call AF_INET like this, you should import socket and not from socket import * otherwise just do
+
+clientSocket = socket(AF_INET, SOCK_DGRAM)
+>clientFTP.py localhost 7735 sampleRead.txt 1024 1024
+	'''
+#program execution starts here	
+if __name__ == "__main__":
+	main()
+	
