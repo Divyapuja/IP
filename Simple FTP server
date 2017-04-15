@@ -1,21 +1,27 @@
+#!/usr/bin/python
+import sys
+#import random
 from socket import *
+#import socket
 
 def Simple_ftp_server():
-	serverPort = 12000
-	serverSocket = socket(AF_INET, SOCK_DGRAM)
-	serverSocket.bind(('', serverPort))
-  	print “The server is ready to receive”
-	while 1:
-		message, clientAddress = serverSocket.recvfrom(2048)
-		modifiedMessage = message.upper()
-		serverSocket.sendto(modifiedMessage, clientAddress)
-		
-
-
-
+    serverPort = 7735
+    serverFileName = sys.argv[1]
+    print(serverFileName)
+    serverSocket = socket(AF_INET, SOCK_DGRAM)
+    serverSocket.bind(('', serverPort))
+    print("Server up")
+    while 1:
+        #rand = random.randint(0, 10)#know its use, then may remove
+        message, address = serverSocket.recvfrom(1024)#its a window size
+        print(message, address)
+        
+        serverSocket.sendto(message,address)
+        
 def main():
+	Simple_ftp_server()
 
-  Simple_ftp_server(portNumber, fileName)
-
+#program execution starts here	
 if __name__ == "__main__":
-    main()
+	main()
+	
