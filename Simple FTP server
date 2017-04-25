@@ -3,21 +3,50 @@ import sys
 #import random
 from socket import *
 #import socket
+import pdb
 
 def Simple_ftp_server():
-    serverPort = 7735
-    serverFileName = sys.argv[1]
+    pdb.set_trace()
+    serverPort = int(sys.argv[1])#7735
+    serverFileName = sys.argv[2]
+    errorProbability = sys.argv[3]
     print(serverFileName)
     serverSocket = socket(AF_INET, SOCK_DGRAM)
     serverSocket.bind(('', serverPort))
-    print("Server up")
+    print("Server is up")
     while 1:
         #rand = random.randint(0, 10)#know its use, then may remove
-        message, address = serverSocket.recvfrom(1024)#its a window size
-        print(message, address)
+        datagram, address = serverSocket.recvfrom(1024)#its a window size
+        print(datagram, address)
+        if datagram and (random.uniform(0,1) >= errorProbability):
+            serverSocket.sendto(datagram,address)
+        else:
+            datagram = None
+            print("Error probability discarded packets")
+            continue
         
-        serverSocket.sendto(message,address)
         
+
+# Cite: http://stackoverflow.com/questions/1767910/checksum-udp-calculation-python
+def carry_around_add(a, b):
+    """Helper function for checksum function"""
+    c = a + b
+    return (c & 0xffff) + (c >> 16)
+
+# Cite: http://stackoverflow.com/questions/1767910/checksum-udp-calculation-python
+def checksum(datagram):
+    """Compute and return a checksum of the given data"""
+    # Force data into 16 bit chunks for checksum
+    if (len(datagram) % 2) != 0:
+        datagram += "0"
+
+    s = 0
+    for i in range(0, len(datagram), 2):
+        w = ord(datagram[i]) + (ord(datagram[i+1]) << 8)
+        s = carry_around_add(s, w)
+    return ~s & 0xffff
+
+
 def main():
 	Simple_ftp_server()
 
