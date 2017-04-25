@@ -8,47 +8,30 @@ import struct
 from struct import *
 from netifaces import *
 import pickle
-import hashlib
 #import netifaces as ni
 import pdb
 
 #This method reads data from the file in byte format. The client also implements the
 #sending side of the reliable Go-back-N protocol, receiving data from rdt_send(), buffering the data locally, and
-#ensuring that the data is received correctly at the server.
-#def rdt_send(data):
-    
-def readData():
-    
-        #collectData = '%ds %dx %ds' % (2,4,len(data))
-        #new = b''.join(struct.unpack(collectData, data))
-        #while 1:
-            #data = data.get(20)
-            #collectData = '%ds %dx %ds' % (data, 2, 4)
-            #collectData = data
-            #if not data:
-                #break
+#ensuring that the data is received correctly at the server.    
+'''def readData():
      # Collect window size N value as integers. Exception handling to ensure only positive integer values of N are passed
     try:
-      
+      # Read arguments and file from command prompt
       serverHostName = sys.argv[1]
-      # Read file from command prompt
+      serverPort = int(sys.argv[2])
       with open(sys.argv[3], 'rb+') as f:
           totalData = f.read()
-      serverPort = int(sys.argv[2])
-      localN = int(sys.argv[4])
-      localMSS = int(sys.argv[5])
-      if serverPort<=0 or localN<=0  or  localMSS<=0:
+      N = int(sys.argv[4])
+      MSS = int(sys.argv[5])
+      if serverPort<=0 or N<=0  or  MSS<=0:
           raise ValueError
     except ValueError:
         print("Server port, Window size N  and MSS should have non zero positive integer values")
         # initialize variables
-        # ACK received from server.
-        #ACK = 0 
-        #numberOfPacketsSent = 0
-        #numberOfPacketsAcked = 0
         #sequenceNumber = 0
-    print(serverHostName,serverPort,totalData,localN,localMSS)
-    return serverHostName,serverPort,totalData,localN,localMSS
+    #print(serverHostName,serverPort,totalData,N,MSS)
+    return serverHostName,serverPort,totalData,N,MSS'''
 '''
 def keepInBuffer(data):
     bufferSize = 1024
@@ -67,62 +50,125 @@ def keepInBuffer(data):
     #{} places a variable into a string 0 takes the variable at argument position 0: adds formatting options for this variable (otherwise it would represent #decimal 6) 08 formats the number to eight digits zero-padded on the left b converts the number to its binary representation
     #FormattedSeq = '{0:032b}'.format(sequenceNumber)
     #ReadyPacket = header + data
-	
-
+def constructPacket(serverHostName,serverPort,totalData,N,MSS):
+    sequenceNumber = 0
+    DataSent = 0
+    pdb.set_trace()
+    # ACK received from server.
+    ACK = 0 
+    # call readData() function
+    '''serverHostName,serverPort,totalData,N,MSS = readData()'''
+    #limitedData = data.read(bufferSize)
+    #if DataSent == 0 or DataSent == 
+    #Remaining = len(str(totalData) - str(DataSent))
+    data = totalData[DataSent:(MSS-8)]#64 bits for header is defined
+    while len(data) > 0:
+        NewData = ' '.join(format(x, 'b') for x in bytearray(data))
+        print("\nserverHostName = ",serverHostName,"\nserverPort = ",serverPort,"\ndata = ",NewData,"\nN = ",N,"\nMSS = ",MSS)
+        DataSent += len(NewData)
+        # calling checksum function 
+        checkSum = checksum(NewData)
+        header = str('{0:032b}'.format(sequenceNumber)) + str('{0:016b}'.format(checkSum)) + str('{0:016b}'.format(1010101010101010))
+        data = totalData[DataSent:(MSS-8)]
+        sequenceNumber += 1
+        #converting string into byte 
+        ReadyPacket = str.encode(header + str(NewData))
+    return ReadyPacket
+    
+    
 def main():
     global N
+    #global DataSent
+    global DataAcked
     #MSS = 5
     global starttime
-    sequenceNumber = 0
     #bufferSize = 1
     starttime = time.time()
+    endTime = 0.1 #sec
     print("\nStart time :::: ", starttime)
-    # checksum evaluaion
-    #encrypt = hashlib.md5()
-    # call readData() function
-    serverHostName,serverPort,totalData,N,MSS = readData()
-    #limitedData = data.read(bufferSize)
-    data = totalData[0:MSS]
-    NewData = ' '.join(format(x, 'b') for x in bytearray(data))
-    #checkSum = hashlib.new(str(data))
-    #value = hash.block_size
-    ary = []
-    pdb.set_trace()
-    ary.append(str.encode(NewData))
-    h = hashlib.md5()
-    h.update(pickle.dumps(ary))
-    ary.append(h.digest())
-    print(ary)
-    hx = ary.hexdigest()
-    #print(limitedData)
-    print("The information read is ....")
-    print("\nserverHostName = ",serverHostName,"\nserverPort = ",serverPort,"\ndata = ",totalData,"\nN = ",N,"\nMSS = ",MSS)
-    #manipulateData(totalData)
-    # Create a socket object
-    FormattedSeq = '{0:032b}'.format(sequenceNumber)
-    header = FormattedSeq + str('{0:016b}'.format(0)) + str('{0:016b}'.format(1010101010101010))
-    print(type(header))
-
-    #print(data)
-    #converting string into byte 
-    ReadyPacket = str.encode(header + str(data))
-
+    try:
+        # Read arguments and file from command prompt
+        pdb.set_trace()
+        serverHostName = sys.argv[1]
+        serverPort = int(sys.argv[2])
+        with open(sys.argv[3], 'rb+') as f:
+            totalData = f.read()
+        N = int(sys.argv[4])
+        MSS = int(sys.argv[5])
+        if serverPort<=0 or N<=0  or  MSS<=0:
+            raise ValueError
+    except ValueError:
+        print("Server port, Window size N  and MSS should have non zero positive integer values")
+        # initialize variables
+        #sequenceNumber = 0
+    #print(serverHostName,serverPort,totalData,N,MSS)
+    '''return serverHostName,serverPort,totalData,N,MSS'''
+    ReadyPacket = constructPacket(serverHostName,serverPort,totalData,N,MSS)   
+    Ack = 0
+    newAck = 0
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  
     s.connect((serverHostName,serverPort))
-    s.sendto(ReadyPacket,(serverHostName,serverPort))
-    while 1:
-        packet,serverAddress = s.recvfrom(1024)
-        receivedPacket = []
-        receivedPacket = packet
-        print(receivedPacket)
+    while Ack < len(ReadyPacket):
+        if newAck < N and (newAck + Ack) < len(ReadyPacket):
+            #**send_pkt(pkts[Ack + newAck], sock)
+            s.sendto(ReadyPacket,(serverHostName,serverPort))
+            newAck += 1
+            continue
+        else: 
+            # Listen for ACKs
+            ready = select.select([sock], [], [], endTime)
+            if ready[0]:
+                #**pkt_recv_raw, addr = sock.recvfrom(4096)
+                #while 1:
+                packet,serverAddress = s.recvfrom(1024)
+                receivedPacket = []
+                receivedPacket = packet
+                print(receivedPacket)
         #.recvfrom(4096)
-    '''
-	clientSocket = socket(socket.AF_INET, socket.SOCK_DGRAM)
-if you were intending to call AF_INET like this, you should import socket and not from socket import * otherwise just do
+            else:# Window is full and no ACK received before timeout
+                print("CLIENT: Go-back-N because of full window and no ACK after timeout")
+                print("Timeout, sequence number =", Ack)
+                newAck = 0
+                continue
+            # Decode packet
+            #pkt_recv = parse_ack(pkt_recv_raw)
+            # Confirm that pkt is indeed an ACK
+            #if pkt_recv.pkt_type != ACK_ID:
+            #    continue
+            # If this is the pkt you're looking for
+            #if pkt_recv.seq_num == Ack:
+                Ack += 1
+                newAck -= 1
+                print("CLIENT: newAck updated, now", newAck)
+            #else:
+                print("CLIENT: Go-back-N with newAck", newAck, "== window_size", N)
+                newAck = 0
+             #   continue
+    # Close server connection and exit successfully
+    sock.close()
+    sys.exit(0)
+'''---------------------------------------------------------------------------------------------------'''
+    
+ 
+# Cite: http://stackoverflow.com/questions/1767910/checksum-udp-calculation-python
+def carry_around_add(a, b):
+    """Helper function for checksum function"""
+    c = a + b
+    return (c & 0xffff) + (c >> 16)
 
-clientSocket = socket(AF_INET, SOCK_DGRAM)
->clientFTP.py localhost 7735 sampleRead.txt 1024 1024
-	'''
+# Cite: http://stackoverflow.com/questions/1767910/checksum-udp-calculation-python
+def checksum(msg):
+    """Compute and return a checksum of the given data"""
+    # Force data into 16 bit chunks for checksum
+    if (len(msg) % 2) != 0:
+        msg += "0"
+
+    s = 0
+    for i in range(0, len(msg), 2):
+        w = ord(msg[i]) + (ord(msg[i+1]) << 8)
+        s = carry_around_add(s, w)
+    return ~s & 0xffff
+    
 #program execution starts here	
 if __name__ == "__main__":
 	main()
